@@ -1,0 +1,20 @@
+node("master") {
+    stage("code checkout"){
+        git 'git@github.com:saikrishna4293/game-of-life.git'
+    }
+    stage("view files"){
+        sh """
+        pwd
+        ls -l
+        """    
+    }
+    stage("code build"){
+        sh "mvn install"
+    }
+    stage("build docker image"){
+        sh """
+        sudo docker build -t saikrishna4293/gameoflife:1.${BUILD_NUMBER} .
+        sudo docker push saikrishna4293/gameoflife:1.${BUILD_NUMBER}
+        """
+    }  
+}

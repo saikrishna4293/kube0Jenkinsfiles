@@ -1,0 +1,42 @@
+def version
+def repoName
+def packageName
+def imageName
+
+node("master") {
+    stage("preparation"){
+        repoName = "saikrishna4293"
+        packageName = "gameoflife"
+        imageName = "gameoflifev2"
+        version = "1." + "${BUILD_NUMBER}"
+        // To display the version in Jenkins build count area
+        currentBuild.displayName = "${version}"
+    }
+    stage("code checkout"){
+        git 'git@github.com:saikrishna4293/game-of-life-v2.git'
+    }
+    stage("view files"){
+        sh """
+        pwd
+        ls -l
+        """    
+    }
+    stage("code build"){
+        sh "mvn install"
+        sh "pwd"
+        sh "ls -l target"
+    }
+    stage("build docker image"){
+        // sudo docker build --build-arg warName="${packageName}" -t ${repoName}/${imageName}:${version} .
+        sh """
+        sudo docker build -t ${repoName}/${imageName}:${version} .
+        sudo docker push ${repoName}/${imageName}:${version}
+        """
+    }
+    stage("testng in dev"){
+        sh """
+        sudo docker run -it -P ${repoName}/${imageName}:${version}
+        sudo docker ps -a | grep ${repoName}/${imageName}:${version}
+        """
+    }
+}
