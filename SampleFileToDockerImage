@@ -1,6 +1,6 @@
 node("master") {
     stage("code checkout"){
-        git 'git@github.com:saikrishna4293/kube1php.git'
+        git 'https://github.com/saikrishna4293/kube1php.git'
     }
     stage("view files"){
         sh """
