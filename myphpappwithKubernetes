@@ -1,0 +1,28 @@
+def imgName
+
+node("master") {
+    stage("preparation"){
+        imgName = "saikrishna4293/myphpapp:1." + "${BUILD_NUMBER}"
+    }
+    stage("code checkout"){
+        git 'https://github.com/saikrishna4293/kube1php.git'
+    }
+    stage("view files"){
+        sh """
+        pwd
+        ls -l
+        """    
+    }
+    stage("build docker image"){
+        sh """
+        sudo docker build -t ${imgName} .
+        sudo docker push ${imgName}
+        """
+    }  
+    stage("deploy it to kuberenetes"){
+        //.....................................V...this is container name
+        sh"""
+        sudo kubectl set image deployment/myphpapp myphpapp=${imgName}
+        """
+    }
+}
