@@ -1,0 +1,54 @@
+def version
+def reponame
+def imgname
+
+node("master"){
+    stage("preparation"){
+        RLnumber = "1"
+        reponame = "saikrishna4293"
+        imgname = "gameoflifev2"
+        version = "${RLnumber}" + "." + "${BUILD_NUMBER}"
+    }
+    stage("checkout"){
+        git 'https://github.com/saikrishna4293/game-of-life-v2.git'
+    }
+    stage("view files"){
+        sh"""
+        pwd
+        ls -l
+        """
+    }
+    stage("code build"){
+        sh "/opt/maven/bin/mvn install -DskipTests"
+        sh "pwd"
+        sh "ls -l gameoflife-web/target/"
+    }
+    stage("SauceLabs testing"){
+        sauce('Jenkins-saucelabs') {
+        // some block
+        }
+    }
+    stage("image build"){
+        sh"""
+        echo "Starting the Image Build process"
+        sudo docker build -t ${reponame}/${imgname}:${version} .
+        sudo docker push ${reponame}/${imgname}:${version}
+        """
+    }
+    stage("testing in dev"){
+        sh """
+        sudo docker run -d -P ${reponame}/${imgname}:${version}
+        sudo docker ps -a | grep -i ${reponame}/${imgname}:${version}
+        """
+    }
+    stage("Email"){
+        emailext body: '''Build execution completed
+click here for ${BUILD_URL}''', subject: 'Jenkins GameofLife', to: 'krishna4charan@gmail.com'
+    }
+    stage("Slack notification"){
+        slackSend(
+            color: '#00a00d',
+            message: "The pipeline *${currentBuild.fullDisplayName}* completed *successfully*."
+        )
+    }
+}
